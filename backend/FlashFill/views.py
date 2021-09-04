@@ -4,27 +4,105 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import FlashFill.Algorithmes.UniformQuickFill as UFF
+import os
+import time
+from backend.settings import BASE_DIR
 
 
 
 
 class FlashFillExecutionList(APIView):    
     def get(self, request, format=None):
-            print("++++++++++++++++++++++++",request.query_params['TestCountry'])
-            datas = {}
-            """             filename = 'dataTest2.txt'
-                        presentelement = ''
-                        Test = UFF.UniformQuickFill()
-                        Test.GetClassC()
-                        ListeOfProgrammes = list(Test.GenerateStringProgram2(Test.GetExamples()[2]))
-                        if len(ListeOfProgrammes) != 0:
-                            datas = Test.ExecuteOnElements(filename,ListeOfProgrammes[0])
-                        else:
-                            datas = "Flash Fill limite" """
-                
-                
+            datas = {"Cette requetes montre que tu volais un peu experiment je te comprends mais cette application n'as pas de faille de securite ne pers pas ton temps"}
             return Response(datas)
+        
+        
+    def post(self, request, format=None):
+        
+        datas = {}
+        DonneAtraiter = request.data.get("data").get("DataEntree")
+        ListOfElements = eval(DonneAtraiter)
+        timewastFlasfill = 0
+        
+        DataTestExemples = {}
+        DataFinalToBeReplace = {}
+        DataExperience = []
+        IndiceColoneSortie = ""
+        MessageCles = ""
+        NombreExemples = 0
+        i = 0
+        for etl in ListOfElements:
+            decoupe =  etl[0].split("***")
+            IndiceExemple = decoupe[0]
+            valeurSortie = decoupe[1]
+            
+            if valeurSortie != "":
 
+                if etl[1] != "":
+                    ChaineEntrainement = etl[1] + "---" + valeurSortie
+                    DataExperience.append(ChaineEntrainement)
+                    IndiceColoneSortie = len(etl) -1 
+            else:
+                
+                if etl[1] != "":
+                    DataTestExemples[etl[1]] = IndiceExemple
+                    
+                
+        
+        
+
+    
+    
+        if len(DataExperience) != 0:
+            
+            spetResultOne = {}
+            chemin = os.path.join(BASE_DIR, 'FlashFill/Algorithmes/data.txt')
+            chemin2 = os.path.join(BASE_DIR, 'FlashFill/Algorithmes/DataTest/dataTest.txt')
+            with open(chemin, 'w') as f:
+                f.write('\n'.join(DataExperience))
+                
+            with open(chemin2, 'w') as f:
+                f.write('\n'.join(list(DataTestExemples.keys())))
+            
+            start = time.time()
+            filename = 'dataTest.txt'
+            Test = UFF.UniformQuickFill()
+            Test.GetClassC()
+            ListeOfProgrammes = list(Test.GenerateStringProgram2(Test.GetExamples()[0]))
+            if len(ListeOfProgrammes) != 0:
+                NombreExemples = len(ListeOfProgrammes)
+                spetResultOne = Test.ExecuteOnElements(filename,ListeOfProgrammes[0])
+                spetResultOne = Test.TandformeToOrignalForm(spetResultOne)
+                
+                for elt2 in spetResultOne:
+                    DataFinalToBeReplace[DataTestExemples[elt2]] = spetResultOne[elt2]
+                    
+                MessageCles = "OK"
+                
+            else:
+                MessageCles = "False"
+                
+            time.sleep(1)
+            end = time.time()
+            
+            timewastFlasfill = end - start
+        else:
+            MessageCles = "False"
+        
+        
+        datas["MessageCles"]    = MessageCles
+        datas["DataFinalToBeReplace"] = DataFinalToBeReplace
+        datas["IndiceColoneSortie"] = IndiceColoneSortie
+        datas["timewastFlasfill"] = timewastFlasfill
+        datas["NombreExemples"] = NombreExemples
+                
+        
+        
+        
+
+
+
+        return Response(datas)
 
     @classmethod
     def get_extra_actions(cls):

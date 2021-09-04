@@ -1608,6 +1608,17 @@ class UniformQuickFill:
         
         return result
 
+    def TandformeToOrignalForm(self, DicoOfOutput):
+        NewDicoOutput = {}
+        
+        for elt in DicoOfOutput:
+            chainefinal = "+++".join(list(eval(elt).values()))
+            NewDicoOutput[chainefinal] = DicoOfOutput[elt]
+            
+        
+        return NewDicoOutput
+            
+            
     def GenerateStringProgram2(self,S):
         """ 
         Prend un ensemble de paires d'exemples  (entree, sortie) et retourne l'ensemble des programmes coherents avec  les exemples
