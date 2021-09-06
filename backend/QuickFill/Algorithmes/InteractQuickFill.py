@@ -7,6 +7,9 @@ import csv
 import re
 import json
 import copy
+import os
+from backend.settings import BASE_DIR
+
 
 
 #Definition des varibale global
@@ -154,7 +157,8 @@ class InteractQuickFill:
         les valeurs st les expressions regulieres correspondantes 
         """ # a present on a 23 tokens dans ClassC
         self.ClasseC = {}
-        with open('classeC.csv', mode='r') as csv_file:
+        chemin = os.path.join(BASE_DIR, 'QuickFill/Algorithmes/classeC.csv')
+        with open(chemin, mode='r') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';')
             for token in csv_reader:
                 self.ClasseC[token[0]] = token[1]
@@ -332,6 +336,7 @@ class InteractQuickFill:
 
     def ExpressionConcatenate(self,entree,s):
         """ retourne la formule concatenate(de SubStr2) et concatenate(de ConstStr) qui permet d'obtenir s a partir de entree """
+        
         k1 = 0
         r1 = []
         Tokens = []
@@ -499,6 +504,9 @@ class InteractQuickFill:
              
         P1.append(ExpressionExecute) # P1 est une liste de tuple
         P2.append(ExpressionExecuteFormule) # liste 'expression Substr2, ConstStr
+        
+        
+        
            
         return [P1,P2]
 
@@ -980,7 +988,8 @@ class InteractQuickFill:
     def GetInteractData(self):
         S =[]
         s = set()
-        with open("interactData.txt","r", newline=None) as f:
+        chemin = os.path.join(BASE_DIR, 'QuickFill/Algorithmes/interactData.txt')
+        with open(chemin,"r", newline=None) as f:
             for line in f:
                 line = line.replace("\n", "")
 
@@ -993,7 +1002,9 @@ class InteractQuickFill:
                         x = eval(line)
                         s = s.union(set([x]))
             f.close() 
-
+        if(len(S) == 0):
+            S.append(s)
+            
         return S
     
 
@@ -1142,14 +1153,57 @@ class InteractQuickFill:
     
 
 
+    def ExecuteBaseCaseExpressSubstr2(self,elt,sigma):
+        elt= elt.split(",",1)
+        elt[0] = elt[0].replace("SubStr2(","")
+        elt1 = elt[1].split(")",1)
+        elt1 = elt1[0].replace("TokenSeq(","")
+        elt1 = elt1.split(",")
+
+        regexpression = ""
+
+        
+        for temp1 in elt1:
+            regexpression = regexpression + self.ClasseC[temp1]
+
+        TokenComp = re.compile(regexpression)
+        Test = TokenComp.findall(sigma[elt[0]])
+
+        if Test != None :
+            return Test[0] 
+
+        else:
+            regexpression = regexpression + self.ClasseC[temp1]
+            return self.BOTTOM
+
+
+    def ExecuteElementFromExpressSustr2(self,sigma,TraceExpression):
+        """ Execute une expression concatenate(trace expression)sur une chaine et retoune le resultat(Sous chaine) obtenu """
+        # x est la variable entiere qui nous sert de compteur de boucle dans LoopR dont k
+        Result = []
+        AtomiqueExpression =  TraceExpression.split("˅")
+        AtomiqueExpression[0] = AtomiqueExpression[0].replace("Concatenate(","",1)
+        b = list(AtomiqueExpression[-1])
+        b[-1] = ""
+        AtomiqueExpression[-1] = "".join(b)
+
+        for elt in AtomiqueExpression:
+            if elt.startswith("SubStr2"):
+                y = self.ExecuteBaseCaseExpressSubstr2(elt,sigma)
+                Result.append(y)
+            
+            
+        if self.BOTTOM in Result:
+            return self.BOTTOM
+        else:
+            return "".join(Result)  
+        
     
     def ExecuteFonction(self,TraceExpression,entree,valeur):
         """ execute un programme sur une entree sigma pour trouver sa sortie correspondante """
         sigma = {}
         for key in entree.keys():
-            t = key.split("***")
-            t = t[0]
-            sigma[t] = entree[key]
+            sigma[key] = entree[key]
 
         Result = []
         AtomiqueExpression =  TraceExpression.split("˅")

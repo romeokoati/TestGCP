@@ -5,7 +5,7 @@ from .views import *
 from django.conf.urls import url
 
 router = routers.DefaultRouter()
-router.register(r'FlashExs',QuickFillExecutionList,basename='FlashExs')
+router.register(r'QuickExs',QuickFillExecutionList,basename='QuickExs')
 
 
 #urlpatterns = router.urls

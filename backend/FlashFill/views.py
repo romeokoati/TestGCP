@@ -6,6 +6,7 @@ from rest_framework.response import Response
 import FlashFill.Algorithmes.UniformQuickFill as UFF
 import os
 import time
+import psutil
 from backend.settings import BASE_DIR
 
 
@@ -65,6 +66,8 @@ class FlashFillExecutionList(APIView):
                 f.write('\n'.join(list(DataTestExemples.keys())))
             
             start = time.time()
+            pid = os.getpid()
+            ps = psutil.Process(pid)
             filename = 'dataTest.txt'
             Test = UFF.UniformQuickFill()
             Test.GetClassC()
@@ -81,7 +84,8 @@ class FlashFillExecutionList(APIView):
                 
             else:
                 MessageCles = "False"
-                
+            
+            datas["memoryFlasfill"] = ps.memory_info()[0]/1048576   
             time.sleep(1)
             end = time.time()
             
